@@ -1,8 +1,6 @@
-
 # Stealth Shift
 
 ## Description
----
 Stealth Shift is a script designed to change the MAC address of a network interface, manage MAC address changes, and integrate with Anonsurf for enhanced anonymity. This tool provides the following functionalities:
 
 - Validate network interfaces
@@ -13,7 +11,7 @@ Stealth Shift is a script designed to change the MAC address of a network interf
 - Display the current status of the network interface
 
 ## Installation
----
+
 To use Stealth Shift, follow these steps:
 
 1. **Clone the Repository**  
@@ -34,7 +32,7 @@ To use Stealth Shift, follow these steps:
    Replace `<interface>` with the name of your network interface.
 
 ## Usage
----
+
 ### Command-Line Options
 - `-i, --interface`: Specify the network interface to change the MAC address.
 - `-m, --mac`: Set the MAC address to this value.
@@ -66,32 +64,27 @@ To use Stealth Shift, follow these steps:
   ```
 
 ## Data Storage
----
 - The script saves the primary MAC address to a file named `<interface>_primary_mac.txt`.
 
 ## License
----
+
 This work is licensed under a Creative Commons Attribution 4.0 International License. You must give appropriate credit, provide a link to the license, and indicate if changes were made. Details: [Creative Commons License](https://creativecommons.org/licenses/by/4.0/)
 
 ## Educational Use Only
----
 This software is intended for educational purposes only. You agree to use the software solely for educational, research, or academic purposes, and not for any commercial or malicious activities.
 
 ## No Liability for Misuse
----
 You acknowledge that you are solely responsible for any misuse of the software, including but not limited to using it to target websites or systems without their permission. The authors and copyright holders shall not be liable for any damages or claims arising from such misuse.
 
 ## Modification Restrictions
----
 You are permitted to modify the software for your own educational purposes, but you agree not to modify the software in a way that would compromise its integrity or security. You also agree not to remove or alter any copyright notices, trademarks, or other proprietary rights notices from the software.
 
 When redistributing or sharing modified versions of the software, you must provide appropriate attribution, indicate if changes were made, and include a link to the original license.
 
 ## Author
----
+
 jakk-er
 
 ## Version
----
-1.0
 
+1.0
