@@ -10,9 +10,31 @@ import random
 from banner import display_banner
 
 def is_valid_interface(interface):
-    """Check if the interface name is valid."""
-    valid_prefixes = ['eth', 'wlan', 'ens']
-    return any(interface.startswith(prefix) for prefix in valid_prefixes) and all(c in string.ascii_letters + string.digits + ':-.' for c in interface)
+    """Check if the interface name is valid based on known naming conventions."""
+    valid_prefixes = [
+        'eth', 'wlan', 'ens',  # Traditional Linux and newer Linux naming
+        'em', 're', 'ath', 'wi',  # BSD systems
+        'en', 'lo',  # macOS and loopback
+        'e1000g', 'bge'  # Solaris
+    ]
+    
+    # Match common patterns for interface names
+    valid_patterns = [
+        r'^eth\d+$',         # eth0, eth1, etc.
+        r'^wlan\d+$',        # wlan0, wlan1, etc.
+        r'^ens\d+$',         # ens33, ens160, etc.
+        r'^em\d+$',          # em0, em1, etc.
+        r'^re\d+$',          # re0, re1, etc.
+        r'^ath\d+$',         # ath0, ath1, etc.
+        r'^wi\d+$',          # wi0, wi1, etc.
+        r'^e1000g\d+$',      # e1000g0, e1000g1, etc.
+        r'^bge\d+$',         # bge0, bge1, etc.
+        r'^en\d+$',          # en0, en1, etc. (macOS)
+        r'^lo$',             # loopback
+    ]
+
+    # Check if the interface name matches any of the valid patterns
+    return any(re.match(pattern, interface) for pattern in valid_patterns)
 
 def configure_logging(verbose):
     """Configure logging based on verbosity."""
@@ -46,10 +68,21 @@ def interface_exists(interface, logger):
 
 def generate_mac_address(logger):
     """Generate a new MAC address with a local administered bit set."""
-    mac = [random.randint(0x02, 0x02)] + [random.randint(0x00, 0xff) for _ in range(5)]
+    # Choose an even prefix for the first byte (0x02, 0x04, 0x06, ..., 0xFE)
+    first_byte = random.choice([x for x in range(0x00, 0xFF + 1) if x % 2 == 0])
+    
+    # Generate the rest of the MAC address
+    mac = [first_byte] + [random.randint(0x00, 0xff) for _ in range(5)]
+    
+    # Format each byte as a two-digit hexadecimal number
     mac_hex = [f"{x:02x}" for x in mac]
+    
+    # Join the bytes with ':' to form the MAC address string
     random_mac = ':'.join(mac_hex)
+    
+    # Log the generated MAC address
     logger.debug(f"Generated MAC address: {random_mac}")
+    
     return random_mac
 
 def is_valid_mac(mac_address, logger):
