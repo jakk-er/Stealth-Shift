@@ -11,7 +11,7 @@ from banner import display_banner
 
 def is_valid_interface(interface):
     """Check if the interface name is valid."""
-    valid_prefixes = ['eth', 'wlan']
+    valid_prefixes = ['eth', 'wlan', 'ens']
     return any(interface.startswith(prefix) for prefix in valid_prefixes) and all(c in string.ascii_letters + string.digits + ':-.' for c in interface)
 
 def configure_logging(verbose):
@@ -21,11 +21,25 @@ def configure_logging(verbose):
     return logging.getLogger(__name__)
 
 def interface_exists(interface, logger):
-    """Check if the network interface exists."""
+    """Check if the network interface exists using ifconfig or ip."""
+    ifconfig_command = ["ifconfig", interface]
+    ip_command = ["ip", "link", "show", interface]
+    
     try:
+        # Check if ifconfig is available
         logger.debug(f"Checking if interface {interface} exists using 'ifconfig'")
-        subprocess.check_output(["ifconfig", interface], stderr=subprocess.STDOUT)
+        subprocess.check_output(ifconfig_command, stderr=subprocess.STDOUT)
         return True
+    except FileNotFoundError:
+        logger.debug("'ifconfig' command not found, falling back to 'ip'")
+        # If ifconfig is not available, check with ip
+        try:
+            logger.debug(f"Checking if interface {interface} exists using 'ip link'")
+            subprocess.check_output(ip_command, stderr=subprocess.STDOUT)
+            return True
+        except subprocess.CalledProcessError:
+            logger.debug(f"Interface {interface} does not exist.")
+            return False
     except subprocess.CalledProcessError:
         logger.debug(f"Interface {interface} does not exist.")
         return False
@@ -47,12 +61,26 @@ def is_valid_mac(mac_address, logger):
 
 def get_current_mac(interface, logger):
     """Retrieve the current MAC address of the specified interface."""
+    ifconfig_command = ["ifconfig", interface]
+    ip_command = ["ip", "link", "show", interface]
+
     try:
+        # Try to get MAC address using ifconfig
         logger.debug(f"Getting current MAC address for {interface} using 'ifconfig'")
-        ifconfig_result = subprocess.check_output(["ifconfig", interface]).decode('utf-8')
-        mac_address_search_result = re.search(r"(\w\w:\w\w:\w\w:\w\w:\w\w:\w\w)", ifconfig_result)
+        ifconfig_result = subprocess.check_output(ifconfig_command).decode('utf-8')
+        mac_address_search_result = re.search(r"([0-9a-fA-F]{2}[:-]){5}[0-9a-fA-F]{2}", ifconfig_result)
+    except FileNotFoundError:
+        logger.debug("'ifconfig' command not found, falling back to 'ip link'")
+        try:
+            # If ifconfig is not available, use ip link
+            logger.debug(f"Getting current MAC address for {interface} using 'ip link'")
+            ip_result = subprocess.check_output(ip_command).decode('utf-8')
+            mac_address_search_result = re.search(r"link/ether ([0-9a-fA-F]{2}[:-]){5}[0-9a-fA-F]{2}", ip_result)
+        except subprocess.CalledProcessError as e:
+            logger.error(f"Could not retrieve MAC address using 'ip link': {e}")
+            return None
     except subprocess.CalledProcessError:
-        logger.error(f"Could not retrieve MAC address for {interface}")
+        logger.error(f"Could not retrieve MAC address using 'ifconfig'")
         return None
 
     if mac_address_search_result:
@@ -74,35 +102,37 @@ def execute_commands(commands, logger):
             logger.error(f"Command failed with error: {e}")
             raise  # Re-raise the exception to stop execution if a command fails
 
-def bring_interface_down_and_up(interface, new_mac, logger):
-    """Bring the interface down, change MAC address, and bring it up."""
-    commands = [
-        ["sudo", "ifconfig", interface, "down"],
-        ["sudo", "ifconfig", interface, "hw", "ether", new_mac],
-        ["sudo", "ifconfig", interface, "up"]
-    ]
-    execute_commands(commands, logger)
-
-def bring_interface_down_and_up_ip(interface, new_mac, logger):
-    """Bring the interface down, change MAC address, and bring it up using 'ip link'."""
-    commands = [
-        ["sudo", "ip", "link", "set", "dev", interface, "down"],
-        ["sudo", "ip", "link", "set", "dev", interface, "address", new_mac],
-        ["sudo", "ip", "link", "set", "dev", interface, "up"]
-    ]
+def bring_interface_down_and_up(interface, new_mac, logger, use_ip=False):
+    """Bring the interface down, change MAC address, and bring it up using either 'ifconfig' or 'ip link'."""
+    if use_ip:
+        commands = [
+            ["sudo", "ip", "link", "set", "dev", interface, "down"],
+            ["sudo", "ip", "link", "set", "dev", interface, "address", new_mac],
+            ["sudo", "ip", "link", "set", "dev", interface, "up"]
+        ]
+    else:
+        commands = [
+            ["sudo", "ifconfig", interface, "down"],
+            ["sudo", "ifconfig", interface, "hw", "ether", new_mac],
+            ["sudo", "ifconfig", interface, "up"]
+        ]
+    
     execute_commands(commands, logger)
 
 def change_mac(interface, new_mac, logger):
     """Change the MAC address of the specified interface."""
     try:
         logger.debug(f"Attempting to change MAC address for {interface} to {new_mac} using 'ifconfig'")
-        bring_interface_down_and_up(interface, new_mac, logger)
-        logger.info(f"MAC address successfully changed to {new_mac} using 'ifconfig'")
-        return True
-    except Exception:
-        logger.warning(f"Failed to change MAC address using 'ifconfig'. Trying 'ip link'...")
+        if subprocess.call(["which", "ifconfig"], stdout=subprocess.DEVNULL) == 0:
+            bring_interface_down_and_up(interface, new_mac, logger, use_ip=False)
+            logger.info(f"MAC address successfully changed to {new_mac} using 'ifconfig'")
+            return True
+        else:
+            raise FileNotFoundError("ifconfig not found")
+    except FileNotFoundError:
+        logger.debug(f"Failed to change MAC address using 'ifconfig'. Trying 'ip link'...")
         try:
-            bring_interface_down_and_up_ip(interface, new_mac, logger)
+            bring_interface_down_and_up(interface, new_mac, logger, use_ip=True)
             logger.info(f"MAC address successfully changed to {new_mac} using 'ip link'")
             return True
         except Exception as e:
@@ -113,6 +143,8 @@ def save_primary_mac_to_file(interface, primary_mac, logger):
     """Save the primary MAC address to a file."""
     filename = f"{interface}_primary_mac.txt"
     try:
+        # Remove any prefix like 'link/ether' if present
+        primary_mac = primary_mac.split()[-1] if ' ' in primary_mac else primary_mac
         with open(filename, 'w') as file:
             file.write(primary_mac)
         logger.info(f"Primary MAC address saved to file for {interface}: {primary_mac}")
@@ -128,6 +160,8 @@ def read_primary_mac_from_file(interface, logger):
     try:
         with open(filename, 'r') as file:
             primary_mac = file.read().strip()
+            # Ensure no prefix like 'link/ether' is present
+            primary_mac = primary_mac.split()[-1] if ' ' in primary_mac else primary_mac
         logger.info(f"Primary MAC address read from file for {interface}")
         return primary_mac
     except FileNotFoundError:
@@ -203,20 +237,41 @@ def cleanup(interface, primary_mac, anonsurf_started, mac_changed, verbose, logg
     # Bring the interface back up if it was down
     try:
         logger.debug(f"Checking if interface {interface} is up.")
-        ifconfig_result = subprocess.check_output(["ifconfig", interface]).decode('utf-8')
-        if "UP" not in ifconfig_result:
-            logger.info(f"Interface {interface} is down. Bringing it back up.")
-            subprocess.run(["sudo", "ifconfig", interface, "up"], check=True)
+        ip_command = ["ip", "link", "show", interface]
+        ifconfig_command = ["ifconfig", interface]
 
-        # Compare the current MAC address with the primary MAC address
-        current_mac = get_current_mac(interface, logger)
-        if current_mac != primary_mac:
-            logger.info(f"Current MAC address ({current_mac}) does not match primary MAC address ({primary_mac}). Restoring primary MAC address.")
-            if not set_primary_mac(interface, primary_mac, logger):
-                logger.error("Failed to restore the primary MAC address.")
+        try:
+            ifconfig_result = subprocess.check_output(ifconfig_command).decode('utf-8')
+            if "UP" not in ifconfig_result:
+                logger.info(f"Interface {interface} is down. Bringing it back up.")
+                subprocess.run(["sudo", "ifconfig", interface, "up"], check=True)
+        except FileNotFoundError:
+            logger.debug("'ifconfig' command not found, falling back to 'ip link'")
+            ip_result = subprocess.check_output(ip_command).decode('utf-8')
+            if "state UP" not in ip_result:
+                logger.info(f"Interface {interface} is down. Bringing it back up.")
+                subprocess.run(["sudo", "ip", "link", "set", "dev", interface, "up"], check=True)
+
+        # Recheck if the primary MAC address file exists
+        primary_mac_file = f"{interface}_primary_mac.txt"
+        if os.path.isfile(primary_mac_file):
+            logger.info("Primary MAC address file found. Attempting to restore MAC address.")
+            
+            # Read the primary MAC address from the file
+            with open(primary_mac_file, 'r') as f:
+                primary_mac = f.read().strip()
+
+            # Compare the current MAC address with the primary MAC address
+            current_mac = get_current_mac(interface, logger)
+            if current_mac and current_mac != primary_mac:
+                logger.info(f"Current MAC address ({current_mac}) does not match primary MAC address ({primary_mac}). Restoring primary MAC address.")
+                if not set_primary_mac(interface, primary_mac, logger):
+                    logger.error("Failed to restore the primary MAC address.")
+            else:
+                logger.info("Current MAC address matches the primary MAC address or MAC address is not changed.")
         else:
-            logger.debug(f"Current MAC address matches the primary MAC address ({primary_mac}).")
-
+            logger.error(f"Primary MAC address file not found for {interface}. Cannot restore the MAC address.")
+        
     except subprocess.CalledProcessError as e:
         logger.error(f"Failed to check or bring up interface {interface}: {e}")
 
