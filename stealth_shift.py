@@ -12,10 +12,11 @@ from banner import display_banner
 def is_valid_interface(interface):
     """Check if the interface name is valid based on known naming conventions."""
     valid_prefixes = [
-        'eth', 'wlan', 'ens',  # Traditional Linux and newer Linux naming
+        'eth', 'wlan', 'ens', 'wlp', 'wlx',  # Traditional Linux and newer Linux naming
         'em', 're', 'ath', 'wi',  # BSD systems
         'en', 'lo',  # macOS and loopback
-        'e1000g', 'bge'  # Solaris
+        'e1000g', 'bge',  # Solaris
+        'veth', 'br', 'docker',  # Virtual and Docker interfaces
     ]
     
     # Match common patterns for interface names
@@ -23,6 +24,8 @@ def is_valid_interface(interface):
         r'^eth\d+$',         # eth0, eth1, etc.
         r'^wlan\d+$',        # wlan0, wlan1, etc.
         r'^ens\d+$',         # ens33, ens160, etc.
+        r'^wlp\d+s\d+$',     # wlp2s0, etc.
+        r'^wlx[a-fA-F0-9]{12}$',  # wlx0024e8b6d3a, etc.
         r'^em\d+$',          # em0, em1, etc.
         r'^re\d+$',          # re0, re1, etc.
         r'^ath\d+$',         # ath0, ath1, etc.
@@ -31,6 +34,9 @@ def is_valid_interface(interface):
         r'^bge\d+$',         # bge0, bge1, etc.
         r'^en\d+$',          # en0, en1, etc. (macOS)
         r'^lo$',             # loopback
+        r'^veth\d+$',        # veth0, veth1, etc.
+        r'^br-\w+$',         # br-<id> for bridge interfaces
+        r'^docker0$',       # Docker bridge
     ]
 
     # Check if the interface name matches any of the valid patterns
