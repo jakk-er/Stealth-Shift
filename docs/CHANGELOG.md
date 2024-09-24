@@ -5,10 +5,13 @@
 - **VPN Support**: Added support for OpenVPN and WireGuard VPN solutions.
 - **Improved User Interface**: Enhanced the user interface for selecting VPN types.
 - **VPN Change Option**: Introduced a new option to change the VPN at specified intervals.
+- **Countdown Timer Functionality**: Implemented a countdown timer that tracks remaining time during MAC and VPN changes.
 - **Enhanced Logging**: Improved logging and error handling mechanisms for better troubleshooting.
+- **Automatic VPN Service Closure**: Ensured that all VPN services are automatically closed upon exiting the script.
+- **Restore Default Settings**: Added functionality to restore all settings to default upon exit.
 - **Interface Wait Functionality**: Added a function to wait for the network interface to come up before proceeding.
 - **Permissions Management**: Improved permissions settings for configuration files.
-- **Stability Improvements**: Fixed several bugs to enhance overall stability.
+- **Stability Improvements**: Fixed several bugs to enhance overall stability, including network interface readiness checks.
 - **New Scripts**:
   - **force_stop_vpn.py**: A script to force stop VPN connections.
   - **vpn_manager.py**: A script to manage VPN connections.
