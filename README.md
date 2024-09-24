@@ -4,10 +4,11 @@
 Stealth Shift is a Python script designed to change the MAC address of a network interface, manage MAC address changes, and interact with various VPN solutions, including Anonsurf, OpenVPN, and WireGuard, for enhanced anonymity. This tool provides the following functionalities:
 
 - **Network Interface Validation**: Check the status and validity of network interfaces.
-- **MAC Address Management**: Generate, validate, and change MAC addresses using `ioctl`, `ifconfig` or `ip link`.
+- **MAC Address Management**: Generate, validate, and change MAC addresses using `ifconfig` or `ip link`.
 - **Primary MAC Address Management**: Save and restore the primary MAC address.
-- **VPN Control**: Start and stop VPN connections for traffic anonymization.
-- **Status Display**: View the current status of network interfaces.
+- **VPN Control**: Start, stop, and switch between VPN connections for traffic anonymization at specified intervals.
+- **Countdown Timer**: Utilize a countdown timer during MAC and VPN changes for better scheduling.
+- **Status Display**: View the current status and MAC address of network interfaces.
 
 ## Installation
 
@@ -92,8 +93,8 @@ You may modify the software for your own educational purposes, but you agree not
 
 ## Author
 
-jakk-er
+**jakk-er**
 
 ## Version
 
-2.0
+**2.0**
