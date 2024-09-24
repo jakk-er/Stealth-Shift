@@ -7,7 +7,8 @@ Stealth Shift is a powerful network utility tool designed to manage and modify M
 - **Changing MAC Address**: Modify the MAC address of network interfaces.
 - **Generating Random MAC Addresses**: Create random MAC addresses with the local administered bit set.
 - **Saving and Restoring MAC Addresses**: Store the original MAC address and restore it when needed.
-- **Managing VPN Connections**: Start, stop, and switch between various VPN solutions (Anonsurf, OpenVPN, WireGuard).
+- **Managing VPN Connections**: Start, stop, and switch between various VPN solutions (Anonsurf, OpenVPN, WireGuard) at specified intervals.
+- **Countdown Timer**: Utilize a countdown timer during MAC and VPN changes for better scheduling.
 - **Interface Status**: Check and verify the current status and MAC address of network interfaces.
 
 **How it Works**
@@ -19,28 +20,33 @@ Stealth Shift uses various Python standard libraries and tools to perform its fu
 - **logging**: For logging execution details and errors.
 - **re**: For regular expressions to validate MAC addresses.
 - **random**: For generating random MAC addresses.
+- **requests**: For fetching public IP addresses.
+- **threading**: For managing concurrent operations, such as the countdown timer.
 
 **Features**
 -------------------
-1. **Change MAC Address**
+1. **Change MAC Address**: 
    Modifies the MAC address of a specified network interface. Supports both `ifconfig` and `ip link` commands.
 
-2. **Generate Random MAC Address**
+2. **Generate Random MAC Address**: 
    Creates a random MAC address suitable for use with the local administered bit set.
 
-3. **Save and Restore MAC Address**
+3. **Save and Restore MAC Address**: 
    Saves the current MAC address to a file and restores it from the file when needed.
 
-4. **Manage VPN Connections**
+4. **Manage VPN Connections**: 
    - **Start and Stop VPN**: Integrate with Anonsurf, OpenVPN, and WireGuard to manage VPN connections.
    - **Switch VPNs**: Change VPNs at specified intervals to enhance anonymity.
 
-5. **Check Interface Status**
+5. **Countdown Timer**: 
+   Use a countdown timer to schedule MAC address and VPN changes effectively.
+
+6. **Check Interface Status**: 
    Displays the current status and MAC address of the specified network interface.
 
 **Configuration Options**
 -------------------------
-Stealth Shift does not require additional configuration options. However, you may need to install and configure Anonsurf, OpenVPN, or WireGuard separately if you plan to use their functionality.
+Stealth Shift does not require additional configuration options. However, you may need to install and configure Anonsurf, OpenVPN, or WireGuard separately if you plan to use their functionality. Ensure you have the necessary permissions (e.g., running with `sudo`) for modifying network settings.
 
 **Troubleshooting Tips**
 -------------------------
@@ -48,6 +54,7 @@ Stealth Shift does not require additional configuration options. However, you ma
 - **Permission Errors**: Ensure you have the necessary permissions to execute system commands. Use `sudo` where required.
 - **Interface Not Found**: Verify the network interface name is correct and exists on your system.
 - **VPN Connection Issues**: Ensure that your VPN configurations are set up correctly and that you have the necessary credentials.
+- **Primary MAC Address Issues**: If the primary MAC address file does not exist or cannot be read, ensure that you have previously saved a MAC address.
 
 ### Debugging
 Utilize verbose logging by adding the `-v` or `--verbose` option to get more detailed output for troubleshooting issues.
@@ -58,6 +65,8 @@ Possible customizations include:
 - Adding support for more VPN solutions.
 - Enhancing the random MAC address generation algorithm.
 - Integrating with additional anonymity tools or services.
+- Allowing user-defined intervals for VPN changes.
+- Expanding the logging system for better diagnostics.
 
 **License and Disclaimer**
 -------------------------
