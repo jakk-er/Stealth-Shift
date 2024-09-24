@@ -1,16 +1,18 @@
 # Stealth Shift
 
 ## Description
-Stealth Shift is a script designed to change the MAC address of a network interface, manage MAC address changes, and integrate with Anonsurf for enhanced anonymity. This tool provides the following functionalities:
+Stealth Shift is a Python script designed to change the MAC address of a network interface, manage MAC address changes, and interact with various VPN solutions, including Anonsurf, OpenVPN, and WireGuard, for enhanced anonymity. This tool provides the following functionalities:
 
-- Validate network interfaces
-- Generate and validate MAC addresses
-- Change the MAC address using `ifconfig` or `ip link`
-- Save and restore the primary MAC address
-- Start and stop Anonsurf for traffic anonymization
-- Display the current status of the network interface
+- **Network Interface Validation**: Check the status and validity of network interfaces.
+- **MAC Address Management**: Generate, validate, and change MAC addresses using `ioctl`, `ifconfig` or `ip link`.
+- **Primary MAC Address Management**: Save and restore the primary MAC address.
+- **VPN Control**: Start and stop VPN connections for traffic anonymization.
+- **Status Display**: View the current status of network interfaces.
 
 ## Installation
+
+### Prerequisites
+Ensure you have Python installed on your system.
 
 To use Stealth Shift, follow these steps:
 
@@ -21,7 +23,10 @@ To use Stealth Shift, follow these steps:
    ```
 
 2. **Install Dependencies**  
-   This script does not require external Python dependencies. Ensure you have Python installed on your system and that you have `ifconfig` and `ip` utilities available.
+   Install the required libraries using:
+   ```bash
+   pip install -r requirements.txt
+   ```
 
 3. **Run the Script**  
    Navigate to the directory where the script is located and execute it:
@@ -40,29 +45,35 @@ To use Stealth Shift, follow these steps:
 - `-p, --primary`: Set the MAC address to the primary MAC address stored in a file.
 - `-s, --status`: Show the current status of the interface.
 - `-v, --verbose`: Enable verbose output.
+- `rc, --random-change`: Change both MAC address and selected VPN every specified interval.
+- `vc, --vpn-change`: Change selected VPN every specified interval (VPN only option).
 
 ### Example Usage
 
-- To change the MAC address of `eth0` to a specific value:
-  ```bash
-  python stealth_shift.py -i eth0 -m 00:11:22:33:44:55
-  ```
-
-- To generate and set a random MAC address for `wlan0`:
-  ```bash
-  python stealth_shift.py -i wlan0 -r
-  ```
-
-- To set the MAC address to the primary address saved in a file for `eth0`:
-  ```bash
-  python stealth_shift.py -i eth0 -p
-  ```
-
-- To display the current MAC address and status of `eth0`:
-  ```bash
-  python stealth_shift.py -i eth0 -s
-  ```
-
+- To change the MAC address of eth0 to a specific value:
+   ```bash
+   python stealth_shift.py -i eth0 -m 00:11:22:33:44:55
+   ```
+- To generate and set a random MAC address for wlan0:
+   ```bash
+   python stealth_shift.py -i wlan0 -r
+   ```
+- To set the MAC address to the primary address saved in a file for eth0:
+   ```bash
+   python stealth_shift.py -i eth0 -p
+   ```
+- To display the current MAC address and status of eth0:
+   ```bash
+   python stealth_shift.py -i eth0 -s
+   ```
+- To change both MAC address and selected VPN every specified interval:
+   ```bash
+   python stealth_shift.py -i eth0 -rc
+   ```
+- To change the selected VPN every specified interval (VPN only option):
+   ```bash
+   python stealth_shift.py -i eth0 -vc
+   ```
 ## Data Storage
 - The script saves the primary MAC address to a file named `<interface>_primary_mac.txt`.
 
@@ -77,9 +88,7 @@ This software is intended for educational purposes only. You agree to use the so
 You acknowledge that you are solely responsible for any misuse of the software, including but not limited to using it to target websites or systems without their permission. The authors and copyright holders shall not be liable for any damages or claims arising from such misuse.
 
 ## Modification Restrictions
-You are permitted to modify the software for your own educational purposes, but you agree not to modify the software in a way that would compromise its integrity or security. You also agree not to remove or alter any copyright notices, trademarks, or other proprietary rights notices from the software.
-
-When redistributing or sharing modified versions of the software, you must provide appropriate attribution, indicate if changes were made, and include a link to the original license.
+You may modify the software for your own educational purposes, but you agree not to compromise its integrity or security. Attribution must be maintained when redistributing or sharing modified versions.
 
 ## Author
 
@@ -87,4 +96,4 @@ jakk-er
 
 ## Version
 
-1.0
+2.0
